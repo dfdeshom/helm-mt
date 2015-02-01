@@ -18,7 +18,7 @@
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24.1") (helm "1.5.3"))
+;; Package-Requires: ((emacs "24") (helm "1.5"))
 ;; Keywords: helm, multi-term
 
 ;;; Commentary:
@@ -26,19 +26,19 @@
 ;; Create and delete multi-term terminals easily with Helm
 
 ;; A call to `helm-mt` will show a list of running terminal sessions
-;; by examining buffers with major mode `term-mode`. From there, you 
-;; should be able to create, delete or switch over to existing 
+;; by examining buffers with major mode `term-mode`.  From there, you
+;; should be able to create, delete or switch over to existing
 ;; terminal buffers
 
 ;;; Code:
 
 (require 'cl-lib)
-;(require 'helm)
+(require 'helm)
 
-(defvar helm-marked-buffer-name)
 (defvar helm-mt-term-source-terminals)
 (defvar helm-mt-term-source-terminal-not-found)
 (defvar helm-mt-term-source-term-list)
+(defvar helm-marked-buffer-name)
 
 (defun helm-mt-terminal-buffers ()
   "Filter for buffers that are terminals only."
@@ -70,8 +70,6 @@
 (setq helm-mt-term-source-terminals
       (helm-build-sync-source "terminal buffers"
         :candidates (lambda () (helm-mt-terminal-buffers))
-        ;:fuzzy-match helm-buffers-fuzzy-matching
-        ;:keymap helm-buffers-ido-virtual-map
         :action (helm-make-actions
                  "Switch to terminal buffer"
                  (lambda (candidate)
@@ -92,7 +90,7 @@
          helm-mt-term-source-terminal-not-found))
  
 ;;;###autoload
-(defun helm-mt-helm-terms ()
+(defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
    (helm-other-buffer
