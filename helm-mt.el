@@ -33,25 +33,23 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'helm)
 
-(defvar helm-mt-term-source-terminals)
-(defvar helm-mt-term-source-terminal-not-found)
-(defvar helm-mt-term-source-term-list)
+(defvar helm-mt/term-source-terminals)
+(defvar helm-mt/term-source-terminal-not-found)
 (defvar helm-marked-buffer-name)
 
-(defun helm-mt-terminal-buffers ()
+(defun helm-mt/terminal-buffers ()
   "Filter for buffers that are terminals only."
   (cl-loop for buf in (buffer-list)
            if (eq 'term-mode (buffer-local-value 'major-mode buf))
            collect (buffer-name buf)) )
 
-(defun helm-mt-launch-term (name)
+(defun helm-mt/launch-term (name)
   "Create new terminal in a buffer called NAME."
   (multi-term)
   (rename-buffer (format "*%s*" name)))
 
-(defun helm-mt-delete-marked-terms ()
+(defun helm-mt/delete-marked-terms ()
   "Delete marked terminals."
   (let* ((buffers (helm-marked-candidates :with-wildcard t))
          (len (length buffers)))
@@ -67,34 +65,32 @@
         (message "%s Terminals deleted" len)))))
 
 
-(setq helm-mt-term-source-terminals
+(setq helm-mt/term-source-terminals
       (helm-build-sync-source "terminal buffers"
-        :candidates (lambda () (helm-mt-terminal-buffers))
+        :candidates (lambda () (helm-mt/terminal-buffers))
         :action (helm-make-actions
                  "Switch to terminal buffer"
                  (lambda (candidate)
                    (helm-switch-to-buffer candidate))
         
-        "Exit marked terminals"  'helm-mt-delete-marked-terms)))
+        "Exit marked terminals"  'helm-mt/delete-marked-terms)))
  
-(setq helm-mt-term-source-terminal-not-found
+(setq helm-mt/term-source-terminal-not-found
   (helm-build-dummy-source
    "Launch new terminal"
    :action (helm-make-actions
             "Launch new terminal"
-            (lambda (candidate) (dfdeshom/launch-term candidate)))))
+            (lambda (candidate) (helm-mt/launch-term candidate)))))
 
-
-(setq helm-mt-term-source-term-list
-      '( helm-mt-term-source-terminals
-         helm-mt-term-source-terminal-not-found))
- 
 ;;;###autoload
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
-   (helm-other-buffer
-    helm-mt-term-source-term-list "*helm terminal buffers*"))
+  (let ((sources
+        '( helm-mt/term-source-terminals
+           helm-mt/term-source-terminal-not-found)))
+
+    (helm-other-buffer sources "*helm terminal buffers*")))
 
 (provide 'helm-mt)
 
