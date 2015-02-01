@@ -13,5 +13,5 @@ Invoke with `helm-mt` or bind the function with a keyboard shortcut
 
 ```
 (require 'helm-mt)
-(global-set-key (kbd "C-x t") 'sane-term)
+(global-set-key (kbd "C-x t") 'helm-mt)
 ```
