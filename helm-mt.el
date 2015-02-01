@@ -18,7 +18,7 @@
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0"))
+;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
 ;;; Commentary:
@@ -33,6 +33,8 @@
 
 ;;; Code:
 (require 'cl-lib)
+(require 'helm)
+(require 'multi-term)
 
 (defvar helm-marked-buffer-name)
 
