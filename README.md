@@ -7,3 +7,11 @@ A call to `helm-mt` will show a list of running terminal sessions
 by examining buffers with major mode `term-mode`.  From there, you
 should be able to create, delete or switch over to existing
 terminal buffers
+
+# Setup
+Invoke with `helm-mt` or bind the function with a keyboard shortcut
+
+```
+(require 'helm-mt)
+(global-set-key (kbd "C-x t") 'sane-term)
+```
