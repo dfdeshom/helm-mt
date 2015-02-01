@@ -74,7 +74,7 @@
   (helm-build-dummy-source
    "Launch A new terminal"
    :action (helm-make-actions
-            "Launch new terminal"
+            "Launch A new terminal"
             (lambda (candidate) (helm-mt/launch-term candidate)))))
 
 ;;;###autoload
@@ -84,7 +84,8 @@
   (let ((sources
         '( helm-mt/term-source-terminals
            helm-mt/term-source-terminal-not-found)))
-    (helm-other-buffer sources "*helm terminal buffers*")))
+    (helm :sources sources
+          :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
 
