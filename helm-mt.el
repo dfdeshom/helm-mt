@@ -34,8 +34,6 @@
 
 (require 'cl-lib)
 
-(defvar helm-mt/term-source-terminals)
-(defvar helm-mt/term-source-terminal-not-found)
 (defvar helm-marked-buffer-name)
 
 (defun helm-mt/terminal-buffers ()
@@ -65,7 +63,7 @@
         (message "%s Terminals deleted" len)))))
 
 
-(setq helm-mt/term-source-terminals
+(defvar helm-mt/term-source-terminals
       (helm-build-sync-source "terminal buffers"
         :candidates (lambda () (helm-mt/terminal-buffers))
         :action (helm-make-actions
@@ -75,7 +73,7 @@
         
         "Exit marked terminals"  'helm-mt/delete-marked-terms)))
  
-(setq helm-mt/term-source-terminal-not-found
+(defvar helm-mt/term-source-terminal-not-found
   (helm-build-dummy-source
    "Launch new terminal"
    :action (helm-make-actions
