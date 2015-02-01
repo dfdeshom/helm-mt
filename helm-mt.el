@@ -19,7 +19,7 @@
 ;; URL: https://github.com/dfdeshom/helm-mt
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "24") (helm "1.5"))
-;; Keywords: helm, multi-term
+;; Keywords: helm multi-term
 
 ;;; Commentary:
 
@@ -47,8 +47,8 @@
   (multi-term)
   (rename-buffer (format "*%s*" name)))
 
-(defun helm-mt/delete-marked-terms ()
-  "Delete marked terminals."
+(defun helm-mt/delete-marked-terms (ignored)
+  "Delete marked terminals.  The IGNORED argument is not used."
   (let* ((buffers (helm-marked-candidates :with-wildcard t))
          (len (length buffers)))
     (with-helm-display-marked-candidates
@@ -64,18 +64,15 @@
 
 
 (defvar helm-mt/term-source-terminals
-      (helm-build-sync-source "terminal buffers"
-        :candidates (lambda () (helm-mt/terminal-buffers))
-        :action (helm-make-actions
-                 "Switch to terminal buffer"
-                 (lambda (candidate)
-                   (helm-switch-to-buffer candidate))
-        
-        "Exit marked terminals"  'helm-mt/delete-marked-terms)))
+      '((name . "Terminal buffers")
+        (candidates . (lambda () (helm-mt/terminal-buffers)))
+        (action . (("Switch to terminal buffer" . (lambda (candidate)
+                                                    (helm-switch-to-buffer candidate)))
+                   ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
  
 (defvar helm-mt/term-source-terminal-not-found
   (helm-build-dummy-source
-   "Launch new terminal"
+   "Launch A new terminal"
    :action (helm-make-actions
             "Launch new terminal"
             (lambda (candidate) (helm-mt/launch-term candidate)))))
@@ -87,7 +84,6 @@
   (let ((sources
         '( helm-mt/term-source-terminals
            helm-mt/term-source-terminal-not-found)))
-
     (helm-other-buffer sources "*helm terminal buffers*")))
 
 (provide 'helm-mt)
