@@ -19,6 +19,7 @@
 ;; URL: https://github.com/dfdeshom/helm-mt
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "24.1") (helm "1.5.3"))
+;; Keywords: helm, multi-term
 
 ;;; Commentary:
 
@@ -26,7 +27,8 @@
 
 ;; A call to `helm-mt` will show a list of running terminal sessions
 ;; by examining buffers with major mode `term-mode`. From there, you 
-;; should be able to create new terminal buffers are create new ones
+;; should be able to create, delete or switch over to existing 
+;; terminal buffers
 
 ;;; Code:
 
