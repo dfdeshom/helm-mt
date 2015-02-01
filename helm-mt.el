@@ -18,7 +18,7 @@
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
 ;; Version: 0.1
-;; Package-Requires: ((emacs "24") (helm "1.5"))
+;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0"))
 ;; Keywords: helm multi-term
 
 ;;; Commentary:
@@ -30,8 +30,8 @@
 ;; should be able to create, delete or switch over to existing
 ;; terminal buffers
 
-;;; Code:
 
+;;; Code:
 (require 'cl-lib)
 
 (defvar helm-marked-buffer-name)
