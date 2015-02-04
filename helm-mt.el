@@ -55,14 +55,14 @@
          (len (length buffers)))
     (with-helm-display-marked-candidates
       helm-marked-buffer-name
-      (if (not (y-or-n-p (format "Delete %s Terminal(s)? " len)))
-          (message "(No deletions performed)")
-        (cl-dolist (b buffers)
           ;; kill the process in the buffer
           ;; then delete buffer, to avoid confirmation questions
+        (cl-dolist (b buffers)
           (delete-process b)
           (kill-buffer b))
-        (message "%s Terminals deleted" len)))))
+        ;; restore orignal window configuration
+        (balance-windows (selected-frame))
+        (message "%s Terminals deleted" len))))
 
 
 (defvar helm-mt/term-source-terminals
