@@ -67,7 +67,9 @@
 
 (defvar helm-mt/term-source-terminals
       '((name . "Terminal buffers")
-        (candidates . (lambda () (helm-mt/terminal-buffers)))
+        (candidates . (lambda () (or
+                                  (helm-mt/terminal-buffers)
+                                  (list ""))))
         (action . (("Switch to terminal buffer" . (lambda (candidate)
                                                     (helm-switch-to-buffer candidate)))
                    ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
