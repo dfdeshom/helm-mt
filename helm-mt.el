@@ -71,7 +71,7 @@
                                   (helm-mt/terminal-buffers)
                                   (list ""))))
         (action . (("Switch to terminal buffer" . (lambda (candidate)
-                                                    (helm-switch-to-buffer candidate)))
+                                                    (switch-to-buffer candidate)))
                    ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
  
 
