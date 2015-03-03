@@ -1,3 +1,5 @@
+[![MELPA](http://melpa.org/packages/helm-mt-badge.svg)](http://melpa.org/#/helm-mt)
+
 # helm-mt
 Helm bindings for managing multi-term terminals
 
