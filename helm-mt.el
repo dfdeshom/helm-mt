@@ -17,7 +17,7 @@
 
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.3
+;; Version: 0.4
 ;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
@@ -47,7 +47,7 @@
 (defun helm-mt/launch-term (name)
   "Create new terminal in a buffer called NAME."
   (multi-term)
-  (rename-buffer (format "*%s*" name)))
+  (rename-buffer (format "*terminal<%s>*" name)))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.  The IGNORED argument is not used."
