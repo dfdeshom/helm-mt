@@ -17,7 +17,8 @@
 
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.4
+;; Version: 20150302.1804
+;; X-Original-Version: 0.4
 ;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
@@ -38,16 +39,23 @@
 
 (defvar helm-marked-buffer-name)
 
+(defvar helm-mt/all-terminal-modes '(term-mode shell-mode))
+
 (defun helm-mt/terminal-buffers ()
   "Filter for buffers that are terminals only."
   (cl-loop for buf in (buffer-list)
-           if (eq 'term-mode (buffer-local-value 'major-mode buf))
+           if (member (buffer-local-value 'major-mode buf) helm-mt/all-terminal-modes)
            collect (buffer-name buf)) )
 
-(defun helm-mt/launch-term (name)
-  "Create new terminal in a buffer called NAME."
-  (multi-term)
-  (rename-buffer (format "*terminal<%s>*" name)))
+(defun helm-mt/launch-term (name mode)
+  "Create new terminal in a buffer called NAME using optional MODE."
+  (message (format "MT Launch name %s" name))
+  (case mode
+	('term
+	 (multi-term)
+	 (rename-buffer (format "*terminal<%s>*" name)))
+	('shell
+	 (shell (format "*shell<%s>*" name)))))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.  The IGNORED argument is not used."
@@ -78,8 +86,10 @@
 (defvar helm-mt/term-source-terminal-not-found
   '((name . "Launch a new terminal")
     (dummy)
-    (action . (("Launch new terminal" . (lambda (candidate)
-                                          (helm-mt/launch-term candidate)))))))
+    (action . (("Launch new term" . (lambda (candidate)
+                                          (helm-mt/launch-term candidate 'term)))
+			   ("Launch new shell" . (lambda (candidate)
+									   (helm-mt/launch-term candidate 'shell)))))))
 
 ;;;###autoload
 (defun helm-mt ()
