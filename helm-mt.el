@@ -51,10 +51,10 @@
   "Create new terminal in a buffer called NAME using optional MODE."
   (message (format "MT Launch name %s" name))
   (case mode
-	('term
+	('term-mode
 	 (multi-term)
 	 (rename-buffer (format "*terminal<%s>*" name)))
-	('shell
+	('shell-mode
 	 (shell (format "*shell<%s>*" name)))))
 
 (defun helm-mt/delete-marked-terms (ignored)
@@ -81,23 +81,23 @@
         (action . (("Switch to terminal buffer" . (lambda (candidate)
                                                     (switch-to-buffer candidate)))
                    ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
- 
 
-(defvar helm-mt/term-source-terminal-not-found
-  '((name . "Launch a new terminal")
-    (dummy)
-    (action . (("Launch new term" . (lambda (candidate)
-                                          (helm-mt/launch-term candidate 'term)))
-			   ("Launch new shell" . (lambda (candidate)
-									   (helm-mt/launch-term candidate 'shell)))))))
+(defun helm-mt/term-source-terminal-not-found ()
+  `((name . "Launch a new terminal")
+	(dummy)
+	(action . ,(mapcar (lambda (mode)
+						  `(,(format "Launch new %s" mode) . 
+							(lambda (candidate)
+								(helm-mt/launch-term candidate (quote ,mode)))))
+					  helm-mt/all-terminal-modes))))
 
 ;;;###autoload
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
   (let ((sources
-        '(helm-mt/term-source-terminals
-          helm-mt/term-source-terminal-not-found)))
+		 `(helm-mt/term-source-terminals
+		   ,(helm-mt/term-source-terminal-not-found))))
     (helm :sources sources
           :buffer "*helm-mt*")))
 
