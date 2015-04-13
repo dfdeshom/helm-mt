@@ -19,3 +19,12 @@ Invoke `helm-mt` and bind it to a keyboard shortcut
 (require 'helm-mt)
 (global-set-key (kbd "C-x t") 'helm-mt)
 ```
+
+If you would like to have helm-mt run when you do "M-x term" or "M-x shell",
+then put this in your init file:
+
+```
+(helm-mt/wrap-shells t)
+```
+
+To deactivate the advice pass "nil" instead of "t".

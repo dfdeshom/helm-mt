@@ -39,7 +39,8 @@
 
 (defvar helm-marked-buffer-name)
 
-(defvar helm-mt/all-terminal-modes '(term-mode shell-mode))
+(defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
+  "If a buffer has a major mode in this list, the helm-mt switcher will list it as an option. The order of the modes controls which is the default action in the helm-mt UI." )
 
 (defun helm-mt/terminal-buffers ()
   "Filter for buffers that are terminals only."
@@ -91,6 +92,23 @@
 								(helm-mt/launch-term candidate (quote ,mode)))))
 					  helm-mt/all-terminal-modes))))
 
+(defun helm-mt/shell-advice (orig-fun &rest args)
+  (message "wrapping shell with helm-mt")
+  (if (called-interactively-p 'interactive)
+	  (call-interactively 'helm-mt)
+	(apply orig-fun args)))
+
+;;;###autoload
+(defun helm-mt/wrap-shells (onoff)
+  "Put advice around shell functions when called interactively that routes to helm-mt UI instead of launching a new shell/terminal. If ONOFF is t, activate the advice and if nil, remove it."
+  (interactive)
+  (dolist (mode helm-mt/all-terminal-modes)
+	(let ((fun (intern (string-replace-2 "-mode" "" (symbol-name mode)))))
+	  (if onoff
+		  (eval
+		   `(add-function :around (symbol-function (quote ,fun)) #'helm-mt/shell-advice))
+		(eval `(advice-remove (quote ,fun) #'helm-mt/shell-advice))))))
+
 ;;;###autoload
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
@@ -102,5 +120,7 @@
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
+
+
 
 ;;; helm-mt.el ends here
