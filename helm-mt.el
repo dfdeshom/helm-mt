@@ -80,7 +80,8 @@
                                   (list ""))))
         (action . (("Switch to terminal buffer" . (lambda (candidate)
                                                     (switch-to-buffer candidate)))
-                   ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
+                   ("Exit marked terminals" . (lambda (candidate)
+                                                (helm-mt/delete-marked-terms candidate)))))))
 
 (defun helm-mt/term-source-terminal-not-found ()
   "Create an helm-mt source for when a terminal needs to be created."
