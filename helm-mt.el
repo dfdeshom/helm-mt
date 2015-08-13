@@ -103,7 +103,7 @@
   "Put advice around shell functions when called interactively that routes to helm-mt UI instead of launching a new shell/terminal. If ONOFF is t, activate the advice and if nil, remove it."
   (interactive)
   (dolist (mode helm-mt/all-terminal-modes)
-	(let ((fun (intern (string-replace-2 "-mode" "" (symbol-name mode)))))
+	(let ((fun (intern (replace-regexp-in-string  (regexp-quote "-mode") "" (symbol-name mode)))))
 	  (if onoff
 		  (eval
 		   `(add-function :around (symbol-function (quote ,fun)) #'helm-mt/shell-advice))
