@@ -75,16 +75,9 @@
                    ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
  
 
-(setq helm-mt/term-source-terminal-not-found
+(defvar helm-mt/term-source-terminal-not-found
   '((name . "Launch a new terminal")
     (dummy)
-    (action . (("Launch new terminal" . (lambda (candidate)
-                                          (helm-mt/launch-term candidate)))))))
-
-(setq helm-mt/term-source-terminal-not-found-with-name
-  '((name . "Launch a new terminal from this dir")
-    (candidates . (lambda () (or  (list (or (buffer-file-name) default-directory))
-                                  )))
     (action . (("Launch new terminal" . (lambda (candidate)
                                           (helm-mt/launch-term candidate)))))))
 
@@ -93,9 +86,8 @@
   "Custom helm buffer for terminals only."
   (interactive)
   (let ((sources
-         '(helm-mt/term-source-terminals
-           helm-mt/term-source-terminal-not-found-with-name
-          helm-mt/term-source-terminal-not-foundaa)))
+        '(helm-mt/term-source-terminals
+          helm-mt/term-source-terminal-not-found)))
     (helm :sources sources
           :buffer "*helm-mt*")))
 
