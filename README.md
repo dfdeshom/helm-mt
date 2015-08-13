@@ -27,4 +27,4 @@ then put this in your init file:
 (helm-mt/wrap-shells t)
 ```
 
-To deactivate the advice pass "nil" instead of "t".
+To deactivate the advice pass `nil` instead of `t`.
