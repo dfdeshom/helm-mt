@@ -17,7 +17,8 @@
 
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.4
+;; Version: 20150302.1804
+;; X-Original-Version: 0.4
 ;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
@@ -38,16 +39,24 @@
 
 (defvar helm-marked-buffer-name)
 
+(defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
+  "If a buffer has a major mode in this list, the helm-mt switcher will list it as an option. The order of the modes controls which is the default action in the helm-mt UI." )
+
 (defun helm-mt/terminal-buffers ()
   "Filter for buffers that are terminals only."
   (cl-loop for buf in (buffer-list)
-           if (eq 'term-mode (buffer-local-value 'major-mode buf))
+           if (member (buffer-local-value 'major-mode buf) helm-mt/all-terminal-modes)
            collect (buffer-name buf)) )
 
-(defun helm-mt/launch-term (name)
-  "Create new terminal in a buffer called NAME."
-  (multi-term)
-  (rename-buffer (format "*terminal<%s>*" name)))
+(defun helm-mt/launch-term (name mode)
+  "Create new terminal in a buffer called NAME using optional MODE."
+  (message (format "MT Launch name %s" name))
+  (case mode
+	('term-mode
+	 (multi-term)
+	 (rename-buffer (format "*terminal<%s>*" name)))
+	('shell-mode
+	 (shell (format "*shell<%s>*" name)))))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.  The IGNORED argument is not used."
@@ -73,24 +82,45 @@
         (action . (("Switch to terminal buffer" . (lambda (candidate)
                                                     (switch-to-buffer candidate)))
                    ("Exit marked terminals" 'helm-mt/delete-marked-terms)))))
- 
 
-(defvar helm-mt/term-source-terminal-not-found
-  '((name . "Launch a new terminal")
-    (dummy)
-    (action . (("Launch new terminal" . (lambda (candidate)
-                                          (helm-mt/launch-term candidate)))))))
+(defun helm-mt/term-source-terminal-not-found ()
+  `((name . "Launch a new terminal")
+	(dummy)
+	(action . ,(mapcar (lambda (mode)
+						  `(,(format "Launch new %s" mode) . 
+							(lambda (candidate)
+								(helm-mt/launch-term candidate (quote ,mode)))))
+					  helm-mt/all-terminal-modes))))
+
+(defun helm-mt/shell-advice (orig-fun &rest args)
+  (message "wrapping shell with helm-mt")
+  (if (called-interactively-p 'interactive)
+	  (call-interactively 'helm-mt)
+	(apply orig-fun args)))
+
+;;;###autoload
+(defun helm-mt/wrap-shells (onoff)
+  "Put advice around shell functions when called interactively that routes to helm-mt UI instead of launching a new shell/terminal. If ONOFF is t, activate the advice and if nil, remove it."
+  (interactive)
+  (dolist (mode helm-mt/all-terminal-modes)
+	(let ((fun (intern (string-replace-2 "-mode" "" (symbol-name mode)))))
+	  (if onoff
+		  (eval
+		   `(add-function :around (symbol-function (quote ,fun)) #'helm-mt/shell-advice))
+		(eval `(advice-remove (quote ,fun) #'helm-mt/shell-advice))))))
 
 ;;;###autoload
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
   (let ((sources
-        '(helm-mt/term-source-terminals
-          helm-mt/term-source-terminal-not-found)))
+		 `(helm-mt/term-source-terminals
+		   ,(helm-mt/term-source-terminal-not-found))))
     (helm :sources sources
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
+
+
 
 ;;; helm-mt.el ends here
