@@ -3,10 +3,10 @@
 # helm-mt
 Helm bindings for managing multi-term terminals
 
-Create and delete multi-term terminals easily with Helm
+Create and delete terminals in `term` or `shell` mode  easily with Helm
 
 A call to `helm-mt` will show a list of running terminal sessions
-by examining buffers with major mode `term-mode`.  From there, you
+by examining buffers with major mode `term-mode` or `shell-mode`.  From there, you
 should be able to create, delete or switch over to existing
 terminal buffers
 
@@ -20,7 +20,7 @@ Invoke `helm-mt` and bind it to a keyboard shortcut
 (global-set-key (kbd "C-x t") 'helm-mt)
 ```
 
-If you would like to have helm-mt run when you do "M-x term" or "M-x shell",
+If you would like to have helm-mt run when you do `M-x term` or `M-x shell`,
 then put this in your init file:
 
 ```
