@@ -36,6 +36,10 @@
 (require 'helm)
 (require 'multi-term)
 
+(defgroup helm-mt nil
+  "Open helm-mt."
+  :prefix "helm-mt/" :group 'helm)
+
 (defvar helm-marked-buffer-name)
 
 (defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
@@ -72,21 +76,43 @@
         (balance-windows (selected-frame))
         (message "%s Terminals deleted" len))))
 
+(defun helm-mt/helper-launch-term-with-named-dir (candidate)
+  "Launch a term with the current directory as the name.  CANDIDATE is ignored."
+  (kill-new (helm-mt/launch-term
+             (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd))
+             'term-mode)))
+
+(defun helm-mt/launch-term-with-named-dir ()
+  "Launch a term with the current directory as the name."
+  (interactive)
+  (with-helm-alive-p
+   (helm-quit-and-execute-action 'helm-mt/helper-launch-term-with-named-dir)
+   )
+  )
+
+(defvar helm-mt/keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map helm-map)
+    (define-key map (kbd "C-c m") 'helm-mt/launch-term-with-named-dir)
+    (delq nil map)) "Keymap for helm-mt.")
 
 (defvar helm-mt/term-source-terminals
-      '((name . "Terminal buffers")
-        (candidates . (lambda () (or
-                                  (helm-mt/terminal-buffers)
-                                  (list ""))))
-        (action . (("Switch to terminal buffer" . (lambda (candidate)
-                                                    (switch-to-buffer candidate)))
-                   ("Exit marked terminals" . (lambda (candidate)
-                                                (helm-mt/delete-marked-terms candidate)))))))
+  '((name . "Terminal buffers ww")
+    (keymap . ,helm-mt/keymap)
+    (candidates . (lambda () (or
+                              (helm-mt/terminal-buffers)
+                              (list ""))))
+    (action . (("Switch to terminal buffer" . (lambda (candidate)
+                                                (switch-to-buffer candidate)))
+               ("Exit marked terminals" . (lambda (candidate)
+                                            (helm-mt/delete-marked-terms candidate)))))))
 
 (defun helm-mt/term-source-terminal-not-found ()
   "Create an helm-mt source for when a terminal needs to be created."
   `((name . "Launch a new terminal")
-	(dummy)
+    (dummy)
+    (requires-pattern . 1)
+    (keymap . ,helm-mt/keymap)
 	(action . ,(mapcar (lambda (mode)
 						  `(,(format "Launch new %s" mode) .
 							(lambda (candidate)
@@ -123,7 +149,6 @@ Agument ORIG-FUN is the original function, ARGS are its arguments"
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
-
 
 
 ;;; helm-mt.el ends here
