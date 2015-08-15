@@ -58,9 +58,9 @@ The order of the modes controls which is the default action in the helm-mt UI." 
   (case mode
 	('term-mode
 	 (multi-term)
-	 (rename-buffer (format "*terminal<%s>*" name)))
+	 (rename-buffer (generate-new-buffer-name (format "*terminal<%s>*" name))  ))
 	('shell-mode
-	 (shell (format "*shell<%s>*" name)))))
+	 (shell (generate-new-buffer-name (format "*shell<%s>*" name)) ))))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.  The IGNORED argument is not used."
