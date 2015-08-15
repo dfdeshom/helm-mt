@@ -17,7 +17,7 @@
 
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.5
+;; Version: 0.6
 ;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
