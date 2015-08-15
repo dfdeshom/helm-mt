@@ -26,20 +26,25 @@
 ;; Create and delete multi-term terminals easily with Helm
 
 ;; A call to `helm-mt` will show a list of running terminal sessions
-;; by examining buffers with major mode `term-mode`.  From there, you
-;; should be able to create, delete or switch over to existing
+;; by examining buffers with major mode `term-mode` or `shell-mode`.
+;; From there, you should be able to create, delete or switch over to existing
 ;; terminal buffers
-
 
 ;;; Code:
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-utils)
 (require 'multi-term)
+
+(defgroup helm-mt nil
+  "Open helm-mt."
+  :prefix "helm-mt/" :group 'helm)
 
 (defvar helm-marked-buffer-name)
 
 (defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
-  "If a buffer has a major mode in this list, the helm-mt switcher will list it as an option.  The order of the modes controls which is the default action in the helm-mt UI." )
+  "If a buffer has a major mode in this list, helm-mt will list it as an option.
+The order of the modes controls which is the default action in the helm-mt UI." )
 
 (defun helm-mt/terminal-buffers ()
   "Filter for buffers that are terminals only."
@@ -72,21 +77,41 @@
         (balance-windows (selected-frame))
         (message "%s Terminals deleted" len))))
 
+(defun helm-mt/helper-launch-term-with-named-dir (ignored)
+  "Launch a term with the current directory as the name.  IGNORED is not used."
+  (kill-new (helm-mt/launch-term
+             (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd))
+             'term-mode)))
+
+(defun helm-mt/launch-term-with-named-dir ()
+  "Launch a term with the current directory as the name."
+  (interactive)
+  (with-helm-alive-p
+   (helm-quit-and-execute-action 'helm-mt/helper-launch-term-with-named-dir)))
+
+(defvar helm-mt/keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map helm-map)
+    (define-key map (kbd "C-c m") 'helm-mt/launch-term-with-named-dir)
+    (delq nil map)) "Keymap for helm-mt.")
 
 (defvar helm-mt/term-source-terminals
-      '((name . "Terminal buffers")
-        (candidates . (lambda () (or
-                                  (helm-mt/terminal-buffers)
-                                  (list ""))))
-        (action . (("Switch to terminal buffer" . (lambda (candidate)
-                                                    (switch-to-buffer candidate)))
-                   ("Exit marked terminals" . (lambda (candidate)
-                                                (helm-mt/delete-marked-terms candidate)))))))
+  '((name . "Terminal buffers ww")
+    (keymap . ,helm-mt/keymap)
+    (candidates . (lambda () (or
+                              (helm-mt/terminal-buffers)
+                              (list ""))))
+    (action . (("Switch to terminal buffer" . (lambda (candidate)
+                                                (switch-to-buffer candidate)))
+               ("Exit marked terminals" . (lambda (candidate)
+                                            (helm-mt/delete-marked-terms candidate)))))))
 
 (defun helm-mt/term-source-terminal-not-found ()
   "Create an helm-mt source for when a terminal needs to be created."
   `((name . "Launch a new terminal")
-	(dummy)
+    (dummy)
+    (requires-pattern . 1)
+    (keymap . ,helm-mt/keymap)
 	(action . ,(mapcar (lambda (mode)
 						  `(,(format "Launch new %s" mode) .
 							(lambda (candidate)
@@ -103,7 +128,9 @@ Agument ORIG-FUN is the original function, ARGS are its arguments"
 
 ;;;###autoload
 (defun helm-mt/wrap-shells (onoff)
-  "Put advice around shell functions when called interactively that routes to helm-mt UI instead of launching a new shell/terminal.  If ONOFF is t, activate the advice and if nil, remove it."
+  "Put advice around shell functions when called interactively.
+This routes to helm-mt UI instead of launching a new shell/terminal.
+If ONOFF is t, activate the advice and if nil, remove it."
   (interactive)
   (dolist (mode helm-mt/all-terminal-modes)
 	(let ((fun (intern (replace-regexp-in-string  (regexp-quote "-mode") "" (symbol-name mode)))))
@@ -123,7 +150,5 @@ Agument ORIG-FUN is the original function, ARGS are its arguments"
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
-
-
 
 ;;; helm-mt.el ends here
