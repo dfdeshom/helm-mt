@@ -92,7 +92,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 (defvar helm-mt/keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c m") 'helm-mt/launch-term-with-named-dir)
+    (define-key map (kbd "C-c n") 'helm-mt/launch-term-with-named-dir)
     (delq nil map)) "Keymap for helm-mt.")
 
 (defvar helm-mt/term-source-terminals
