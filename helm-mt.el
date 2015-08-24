@@ -95,16 +95,18 @@ The order of the modes controls which is the default action in the helm-mt UI." 
     (define-key map (kbd "C-c n") 'helm-mt/launch-term-with-named-dir)
     (delq nil map)) "Keymap for helm-mt.")
 
-(defvar helm-mt/term-source-terminals
-  '((name . "Terminal buffers")
+
+(defun helm-mt/term-source-terminals ()
+  "List all terminals or shells and allow various actions on them."
+  `((name . "Terminal buffers [test4]")
     (keymap . ,helm-mt/keymap)
     (candidates . (lambda () (or
                               (helm-mt/terminal-buffers)
                               (list ""))))
     (action . (("Switch to terminal buffer" . (lambda (candidate)
-                                                (switch-to-buffer candidate)))
+                                                `(,(switch-to-buffer candidate)) ))
                ("Exit marked terminals" . (lambda (candidate)
-                                            (helm-mt/delete-marked-terms candidate)))))))
+                                            `(,(helm-mt/delete-marked-terms candidate))))))))
 
 (defun helm-mt/term-source-terminal-not-found ()
   "Create an helm-mt source for when a terminal needs to be created."
@@ -144,7 +146,7 @@ If ONOFF is t, activate the advice and if nil, remove it."
   "Custom helm buffer for terminals only."
   (interactive)
   (let ((sources
-		 `(helm-mt/term-source-terminals
+		 `(,(helm-mt/term-source-terminals)
 		   ,(helm-mt/term-source-terminal-not-found))))
     (helm :sources sources
           :buffer "*helm-mt*")))
