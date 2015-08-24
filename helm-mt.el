@@ -96,7 +96,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
     (delq nil map)) "Keymap for helm-mt.")
 
 (defvar helm-mt/term-source-terminals
-  '((name . "Terminal buffers ww")
+  '((name . "Terminal buffers")
     (keymap . ,helm-mt/keymap)
     (candidates . (lambda () (or
                               (helm-mt/terminal-buffers)
