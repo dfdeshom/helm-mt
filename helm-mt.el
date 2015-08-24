@@ -98,7 +98,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 
 (defun helm-mt/term-source-terminals ()
   "List all terminals or shells and allow various actions on them."
-  `((name . "Terminal buffers [test4]")
+  `((name . "Terminal buffers")
     (keymap . ,helm-mt/keymap)
     (candidates . (lambda () (or
                               (helm-mt/terminal-buffers)
