@@ -64,7 +64,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 (defun helm-mt/new-term (name)
   "Create terminal NAME."
   (multi-term)
-  (rename-buffer (helm-mt/unique-buffer-name name 'term-mode))
+  (rename-buffer name)
   )
 
 (defun helm-mt/launch-term (name mode)
