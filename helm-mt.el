@@ -94,8 +94,8 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 
 (defun helm-mt/helper-auto-terminal ()
   "Launch a term with the current directory as the name.  IGNORED is not used."
-  (let* ((_name (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd)))
-         (terminal_name (helm-mt/unique-buffer-name _name 'term-mode)))
+  (let* ((name (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd)))
+         (terminal_name (helm-mt/unique-buffer-name name 'term-mode)))
     
     (helm-mt/new-term terminal_name)
   
