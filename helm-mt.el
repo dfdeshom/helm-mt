@@ -61,13 +61,18 @@ The order of the modes controls which is the default action in the helm-mt UI." 
      (generate-new-buffer-name (format "*shell<%s>*" name))))
   )
 
+(defun helm-mt/new-term (name)
+  "Create terminal NAME."
+  (multi-term)
+  (rename-buffer (helm-mt/unique-buffer-name name 'term-mode))
+  )
+
 (defun helm-mt/launch-term (name mode)
   "Create new terminal in a buffer called NAME using optional MODE."
   (message (format "Launching term \"%s\" with mode \"%s\" " name mode))
   (case mode
 	('term-mode
-	 (multi-term)
-         (rename-buffer (helm-mt/unique-buffer-name name 'term-mode))
+	 (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode))
          )
 	('shell-mode
 	 (shell (helm-mt/unique-buffer-name name 'shell-mode) ))))
@@ -87,23 +92,31 @@ The order of the modes controls which is the default action in the helm-mt UI." 
         (balance-windows (selected-frame))
         (message "%s Terminals deleted" len))))
 
-(defun helm-mt/helper-launch-term-with-named-dir (ignored)
+(defun helm-mt/helper-auto-terminal ()
   "Launch a term with the current directory as the name.  IGNORED is not used."
-  (helm-mt/launch-term
-             (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd))
-             'term-mode)
+  (let* ((_name (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd)))
+         (terminal_name (helm-mt/unique-buffer-name _name 'term-mode)))
+    
+    (helm-mt/new-term terminal_name)
+  
+    )
   )
 
-(defun helm-mt/launch-term-with-named-dir ()
+(defun helm-mt/auto-terminal ()
   "Launch a term with the current directory as the name."
   (interactive)
-  (with-helm-alive-p
-   (helm-quit-and-execute-action 'helm-mt/helper-launch-term-with-named-dir)))
+  (helm-mt/helper-launch-term-with-named-dir )
+  
+                                        ;(helm-keyboard-quit)
+                                        ;(helm-exit-minibuffer)
+                                        ;(exit-minibuffer)
+;  (helm-quit-and-execute-action 'helm-mt/helper-launch-term-with-named-dir)
+    )
 
 (defvar helm-mt/keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c n") 'helm-mt/launch-term-with-named-dir)
+    (define-key map (kbd "C-c n") 'helm-mt/auto-terminal)
     (delq nil map)) "Keymap for helm-mt.")
 
 
