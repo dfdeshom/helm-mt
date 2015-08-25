@@ -89,9 +89,10 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 
 (defun helm-mt/helper-launch-term-with-named-dir (ignored)
   "Launch a term with the current directory as the name.  IGNORED is not used."
-  (kill-new (helm-mt/launch-term
+  (helm-mt/launch-term
              (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd))
-             'term-mode)))
+             'term-mode)
+  )
 
 (defun helm-mt/launch-term-with-named-dir ()
   "Launch a term with the current directory as the name."
