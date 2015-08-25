@@ -112,7 +112,6 @@ The order of the modes controls which is the default action in the helm-mt UI." 
   "Create an helm-mt source for when a terminal needs to be created."
   `((name . "Launch a new terminal")
     (dummy)
-    (requires-pattern . 1)
     (keymap . ,helm-mt/keymap)
 	(action . ,(mapcar (lambda (mode)
 						  `(,(format "Launch new %s" mode) .
