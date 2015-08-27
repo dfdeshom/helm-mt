@@ -105,7 +105,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 (defun helm-mt/auto-terminal ()
   "Launch a term with the current directory as the name."
   (interactive)
-  (helm-mt/helper-launch-term-with-named-dir )
+  (helm-mt/helper-auto-terminal)
   
                                         ;(helm-keyboard-quit)
                                         ;(helm-exit-minibuffer)
