@@ -72,8 +72,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
   (message (format "Launching term \"%s\" with mode \"%s\" " name mode))
   (case mode
 	('term-mode
-	 (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode))
-         )
+	 (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode)))
 	('shell-mode
 	 (shell (helm-mt/unique-buffer-name name 'shell-mode) ))))
 
@@ -93,7 +92,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
         (message "%s Terminals deleted" len))))
 
 (defun helm-mt/helper-auto-terminal ()
-  "Launch a term with the current directory as the name.  IGNORED is not used."
+  "Launch a term with the current directory as the name."
   (let* ((name (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd)))
          (terminal_name (helm-mt/unique-buffer-name name 'term-mode)))
     
