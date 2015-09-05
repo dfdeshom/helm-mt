@@ -163,6 +163,13 @@ If ONOFF is t, activate the advice and if nil, remove it."
 		   `(add-function :around (symbol-function (quote ,fun)) #'helm-mt/shell-advice))
 		(eval `(advice-remove (quote ,fun) #'helm-mt/shell-advice))))))
 
+(defun helm-mt/dir-name ()
+  "Get the name of the current directory only, not the full name."
+  (car (last  (split-string
+           (replace-regexp-in-string
+            (regexp-quote "Directory ") "" (pwd)) "/") 2))
+  )
+
 ;;;###autoload
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
@@ -171,6 +178,7 @@ If ONOFF is t, activate the advice and if nil, remove it."
 		 `(,(helm-mt/term-source-terminals)
 		   ,(helm-mt/term-source-terminal-not-found))))
     (helm :sources sources
+          :input (helm-mt/dir-name)
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
