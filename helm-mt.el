@@ -178,7 +178,7 @@ If ONOFF is t, activate the advice and if nil, remove it."
 		 `(,(helm-mt/term-source-terminals)
 		   ,(helm-mt/term-source-terminal-not-found))))
     (helm :sources sources
-          :input (helm-mt/dir-name)
+          ;:input (helm-mt/dir-name)
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
