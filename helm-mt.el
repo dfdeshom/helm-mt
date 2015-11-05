@@ -54,7 +54,7 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 
 (defun helm-mt/unique-buffer-name (name mode)
   "Unique buffer from NAME and MODE."
-  (case mode
+  (cl-case mode
     ('term-mode
      (generate-new-buffer-name (format "*terminal<%s>*" name)))
     ('shell-mode
@@ -70,11 +70,11 @@ The order of the modes controls which is the default action in the helm-mt UI." 
 (defun helm-mt/launch-term (name mode)
   "Create new terminal in a buffer called NAME using optional MODE."
   (message (format "Launching term \"%s\" with mode \"%s\" " name mode))
-  (case mode
-	('term-mode
-	 (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode)))
-	('shell-mode
-	 (shell (helm-mt/unique-buffer-name name 'shell-mode) ))))
+  (cl-case mode
+    ('term-mode
+     (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode)))
+    ('shell-mode
+     (shell (helm-mt/unique-buffer-name name 'shell-mode) ))))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.  The IGNORED argument is not used."
