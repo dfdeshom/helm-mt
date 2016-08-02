@@ -1,6 +1,12 @@
-;;; helm-mt.el --- helm multi-term management. -*- lexical-binding: t -*-
+;;; helm-mt.el --- helm multi-term management -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Didier Deshommes <dfdeshom@gmail.com>
+;; Copyright (C) 2015, 2016 Didier Deshommes <dfdeshom@gmail.com>
+
+;; Author: Didier Deshommes <dfdeshom@gmail.com>
+;; URL: https://github.com/dfdeshom/helm-mt
+;; Version: 0.6
+;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
+;; Keywords: helm multi-term
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -15,22 +21,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Author: Didier Deshommes <dfdeshom@gmail.com>
-;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.6
-;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
-;; Keywords: helm multi-term
-
 ;;; Commentary:
 
-;; Create and delete multi-term terminals easily with Helm
-
-;; A call to `helm-mt` will show a list of running terminal sessions
-;; by examining buffers with major mode `term-mode` or `shell-mode`.
-;; From there, you should be able to create, delete or switch over to existing
-;; terminal buffers
+;; Create and delete multi-term terminals easily with Helm.  A call to
+;; `helm-mt` will show a list of running terminal sessions by
+;; examining buffers with major mode `term-mode` or `shell-mode`.
+;; From there, you should be able to create, delete or switch over to
+;; existing terminal buffers.
 
 ;;; Code:
+
 (require 'cl-lib)
 (require 'helm)
 (require 'helm-utils)
