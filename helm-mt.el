@@ -131,17 +131,6 @@ The order of the modes controls which is the default action in the helm-mt UI." 
                ("Exit marked terminals" . (lambda (candidate)
                                             `(,(helm-mt/delete-marked-terms candidate))))))))
 
-(defun helm-mt/term-source-terminal-not-found ()
-  "Create an helm-mt source for when a terminal needs to be created."
-  `((name . "Launch a new terminal")
-    (dummy)
-    (keymap . ,helm-mt/keymap)
-	(action . ,(mapcar (lambda (mode)
-						  `(,(format "Launch new %s" mode) .
-							(lambda (candidate)
-								(helm-mt/launch-term candidate (quote ,mode)))))
-					  helm-mt/all-terminal-modes))))
-
 (defun helm-mt/shell-advice (orig-fun &rest args)
   "Advice that has helm-mt run when invoking `M-x shell` or `M-x term`.
 Agument ORIG-FUN is the original function, ARGS are its arguments"
@@ -175,10 +164,15 @@ If ONOFF is t, activate the advice and if nil, remove it."
   "Custom helm buffer for terminals only."
   (interactive)
   (let ((sources
-		 `(,(helm-mt/term-source-terminals)
-		   ,(helm-mt/term-source-terminal-not-found))))
+         `(,(helm-mt/term-source-terminals)
+           ,(helm-build-dummy-source "Launch a new Terminal 2"
+              :action (mapcar (lambda (mode)
+                                `(,(format "Launch new %s" mode) .
+                                  (lambda (candidate)
+                                    (helm-mt/launch-term candidate (quote ,mode)))))
+                              helm-mt/all-terminal-modes)))))
     (helm :sources sources
-          ;:input (helm-mt/dir-name)
+                                        ;:input (helm-mt/dir-name)
           :buffer "*helm-mt*")))
 
 (provide 'helm-mt)
