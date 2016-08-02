@@ -33,6 +33,8 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-lib)
+(require 'helm-source)
 (require 'helm-utils)
 (require 'multi-term)
 
@@ -112,18 +114,30 @@ The order of the modes controls which is the default action in the helm-mt UI.")
     (delq nil map))
   "Keymap for helm-mt.")
 
+(defvar helm-mt/term-source-terminals
+  (helm-build-sync-source
+      "Terminals"
+    :candidates (lambda () (or
+                            (helm-mt/terminal-buffers)
+                            (list "")))
+    :action (helm-make-actions
+             "Switch to terminal buffer"
+             (lambda (candidate)
+               (switch-to-buffer candidate))
+             "Exit marked terminal(s)"
+             (lambda (_ignored)
+               (helm-mt/delete-marked-terms _ignored)))))
 
-(defun helm-mt/term-source-terminals ()
-  "List all terminals or shells and allow various actions on them."
-  `((name . "Terminal buffers")
-    (keymap . ,helm-mt/keymap)
-    (candidates . (lambda () (or
-                              (helm-mt/terminal-buffers)
-                              (list ""))))
-    (action . (("Switch to terminal buffer" . (lambda (candidate)
-                                                `(,(switch-to-buffer candidate)) ))
-               ("Exit marked terminals" . (lambda (candidate)
-                                            `(,(helm-mt/delete-marked-terms candidate))))))))
+(defvar helm-mt/term-source-terminal-not-found
+  (helm-build-dummy-source
+      "Launch a new terminal"
+    :action (apply 'helm-make-actions
+                   (apply 'append
+                          (mapcar (lambda (mode)
+                                    (list (format "Launch new %s" mode)
+                                          `(lambda (candidate)
+                                             (helm-mt/launch-term candidate (quote ,mode)))))
+                                  helm-mt/all-terminal-modes)))))
 
 (defun helm-mt/shell-advice (orig-fun &rest args)
   "Advice that has helm-mt run when invoking `M-x shell` or `M-x term`.
@@ -156,17 +170,10 @@ If ONOFF is t, activate the advice and if nil, remove it."
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
-  (let ((sources
-         `(,(helm-mt/term-source-terminals)
-           ,(helm-build-dummy-source "Launch a new Terminal 2"
-              :action (mapcar (lambda (mode)
-                                `(,(format "Launch new %s" mode) .
-                                  (lambda (candidate)
-                                    (helm-mt/launch-term candidate (quote ,mode)))))
-                              helm-mt/all-terminal-modes)))))
-    (helm :sources sources
-          ;;:input (helm-mt/dir-name)
-          :buffer "*helm-mt*")))
+  (helm :sources '(helm-mt/term-source-terminals
+                   helm-mt/term-source-terminal-not-found)
+        :keymap helm-mt/keymap
+        :buffer "*helm mt*"))
 
 (provide 'helm-mt)
 ;;; helm-mt.el ends here
