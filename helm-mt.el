@@ -139,7 +139,7 @@ The _IGNORED argument is not used."
 
 (defun helm-mt/shell-advice (orig-fun &rest args)
   "Advice that has helm-mt run when invoking `M-x shell` or `M-x term`.
-Agument ORIG-FUN is the original function, ARGS are its arguments."
+Argument ORIG-FUN is the original function, ARGS are its arguments."
   (message "wrapping shell with helm-mt")
   (if (called-interactively-p 'interactive)
       (call-interactively 'helm-mt)
