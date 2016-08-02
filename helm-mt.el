@@ -42,8 +42,6 @@
   "Open helm-mt."
   :prefix "helm-mt/" :group 'helm)
 
-(defvar helm-marked-buffer-name)
-
 (defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
   "If a buffer has a major mode in this list, helm-mt will list it as an option.
 The order of the modes controls which is the default action in the helm-mt UI.")
@@ -76,20 +74,20 @@ The order of the modes controls which is the default action in the helm-mt UI.")
     ('shell-mode
      (shell (helm-mt/unique-buffer-name name 'shell-mode)))))
 
-(defun helm-mt/delete-marked-terms (ignored)
-  "Delete marked terminals.  The IGNORED argument is not used."
-  (let* ((buffers (helm-marked-candidates :with-wildcard t))
-         (len (length buffers)))
-    (with-helm-display-marked-candidates
-      helm-marked-buffer-name
-      ;; kill the process in the buffer
-      ;; then delete buffer, to avoid confirmation questions
-      (cl-dolist (b buffers)
-        (delete-process b)
-        (kill-buffer b))
-      ;; restore orignal window configuration
-      (balance-windows (selected-frame))
-      (message "%s Terminals deleted" len))))
+(defun helm-mt/delete-marked-terms (_ignored)
+  "Delete marked terminals.
+The _IGNORED argument is not used."
+  (let* ((bufs (helm-marked-candidates))
+         (killed-bufs (cl-count-if 'helm-mt/delete-term bufs)))
+    (with-helm-buffer
+      (setq helm-marked-candidates nil
+            helm-visible-mark-overlays nil))
+    (message "Deleted %s terminal(s)" killed-bufs)))
+
+(defun helm-mt/delete-term (name)
+  "Delete terminal NAME."
+  (delete-process name)
+  (kill-buffer name))
 
 (defun helm-mt/helper-auto-terminal ()
   "Launch a term with the current directory as the name."
