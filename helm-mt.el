@@ -112,7 +112,8 @@ The _IGNORED argument is not used."
     (delq nil map))
   "Keymap for helm-mt.")
 
-(defvar helm-mt/term-source-terminals
+(defun helm-mt/term-source-terminals ()
+  "Helm source with candidates for all terminal buffers."
   (helm-build-sync-source
       "Terminals"
     :candidates (lambda () (or
@@ -126,7 +127,8 @@ The _IGNORED argument is not used."
              (lambda (_ignored)
                (helm-mt/delete-marked-terms _ignored)))))
 
-(defvar helm-mt/term-source-terminal-not-found
+(defun helm-mt/term-source-terminal-not-found ()
+  "Dummy helm source to launch a new terminal."
   (helm-build-dummy-source
       "Launch a new terminal"
     :action (apply 'helm-make-actions
@@ -162,8 +164,8 @@ If ONOFF is t, activate the advice and if nil, remove it."
 (defun helm-mt ()
   "Custom helm buffer for terminals only."
   (interactive)
-  (helm :sources '(helm-mt/term-source-terminals
-                   helm-mt/term-source-terminal-not-found)
+  (helm :sources `(,(helm-mt/term-source-terminals)
+                   ,(helm-mt/term-source-terminal-not-found))
         :keymap helm-mt/keymap
         :buffer "*helm mt*"))
 
