@@ -86,7 +86,8 @@ The _IGNORED argument is not used."
 
 (defun helm-mt/delete-term (name)
   "Delete terminal NAME."
-  (delete-process name)
+  (if (get-buffer-process name)
+      (delete-process name))
   (kill-buffer name))
 
 (defun helm-mt/helper-auto-terminal ()
