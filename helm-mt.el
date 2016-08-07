@@ -39,6 +39,7 @@
 (defvar helm-mt/keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
+    (define-key map (kbd "M-D") 'helm-mt/helm-buffer-run-delete-terms)
     (delq nil map))
   "Keymap for `helm-mt'.")
 
@@ -65,6 +66,13 @@ Argument IGNORED is not used."
       (delete-process name))
   (kill-buffer name))
 
+(defun helm-mt/helm-buffer-run-delete-terms ()
+  "Run delete terms action from `helm-mt' source list."
+  (interactive)
+  (with-helm-alive-p
+    (helm-exit-and-execute-action 'helm-mt/delete-marked-terms)))
+(put 'helm-mt/helm-buffer-run-delete-terms 'helm-only t)
+
 (defun helm-mt/term-source-terminals ()
   "Helm source with candidates for all terminal buffers managed by `multi-term'."
   (helm-build-sync-source
@@ -76,7 +84,7 @@ Argument IGNORED is not used."
              "Switch to terminal"
              (lambda (candidate)
                (switch-to-buffer candidate))
-             "Exit marked terminal(s)"
+             "Exit marked terminal(s) `M-D'"
              (lambda (ignored)
                (helm-mt/delete-marked-terms ignored)))))
 
