@@ -47,7 +47,7 @@
 PREFIX is passed on to `multi-term' as a prefix argument."
   (setq current-prefix-arg prefix)
   (call-interactively 'multi-term)
-  (rename-buffer (generate-new-buffer-name name)))
+  (rename-buffer (generate-new-buffer-name (format "*terminal<%s>*" name))))
 
 (defun helm-mt/delete-marked-terms (ignored)
   "Delete marked terminals.
@@ -81,17 +81,27 @@ Argument IGNORED is not used."
                (helm-mt/delete-marked-terms ignored)))))
 
 (defun helm-mt/term-source-terminal-not-found (prefix)
-  "Dummy helm source to launch a new terminal.
-PREFIX is passed on to `helm-mt/launch-term'."
-  (let ((source-header "Launch a new terminal"))
-    (helm-build-dummy-source
-        source-header
+  "Helm source to launch a new terminal.
+PREFIX is passed on to `helm-mt/launch-term'.
+Defaults to a terminal with a unique name derived from the `default-directory'."
+  (let* ((default-display "Named after current directory (default)")
+         (default-real (generate-new-buffer-name (expand-file-name default-directory)))
+         (default `(,default-display . ,default-real)))
+    (helm-build-sync-source
+        "Launch a new terminal"
+      :candidates '("dummy")
+      :filtered-candidate-transformer (lambda (candidates _source)
+                                        (if (string-equal helm-pattern "")
+                                            (list default)
+                                          (list helm-pattern)))
+      :matchplugin nil
+      :match 'identity
+      :volatile t
       :action (helm-make-actions
                "Launch new terminal"
                (lambda (candidate)
-                 ;; default to current working directory for "empty" terminal names
-                 (if (string-equal candidate source-header)
-                     (setq candidate default-directory))
+                 (if (string-equal candidate (car default))
+                     (setq candidate (cdr default)))
                  (helm-mt/launch-term candidate prefix))))))
 
 ;;;###autoload
