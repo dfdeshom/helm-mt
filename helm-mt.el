@@ -133,8 +133,26 @@ terminal with a unique name derived from the `default-directory'."
                                                (helm-mt/launch-terminal candidate ,prefix (quote ,mode)))))
                                     (list 'term 'shell)))))))
 
+(defun helm-mt/reroute-function (orig-fun &rest args)
+  "Advise a function to run `helm-mt' instead when called interactively.
+Argument ORIG-FUN is the original function, ARGS are its arguments."
+  (if (called-interactively-p 'interactive)
+      (progn
+        (message "Rerouting to `helm-mt'")
+        (helm-mt))
+    (apply orig-fun args)))
+
 ;;;###autoload
-(defun helm-mt (prefix)
+(defun helm-mt/reroute-terminal-functions (arg)
+  "Advise terminal functions to run `helm-mt' instead when called interactively.
+If ARG is t, then activate the advice; otherwise, remove it."
+  (dolist (fun (list 'term 'shell))
+    (if arg
+        (advice-add fun :around #'helm-mt/reroute-function)
+      (advice-remove fun #'helm-mt/reroute-function))))
+
+;;;###autoload
+(defun helm-mt (&optional prefix)
   "Custom helm buffer for terminals only.
 PREFIX is passed on to `helm-mt/term-source-terminal-not-found'."
   (interactive "P")
