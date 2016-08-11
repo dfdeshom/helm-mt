@@ -55,10 +55,11 @@ buffers) and buffers in `shell-mode'."
 
 (defun helm-mt/launch-terminal (name prefix mode)
   "Launch a terminal in a new buffer.
-NAME is the desired name of the buffer, which will be prefixed with
-mode and made unique.  PREFIX is passed on to the function that
-creates the terminal as a prefix argument.  MODE is either 'term or
-'shell."
+NAME is the desired name of the buffer.  Pass \"%cwd\" to use the
+working directory of the launched terminal process.  Additionally, the
+buffer name will be prefixed with the given mode and made unique.
+PREFIX is passed on to the function that creates the terminal as a
+prefix argument.  MODE is either 'term or 'shell."
   (setq current-prefix-arg prefix)
   (cl-case mode
     ('term
@@ -67,7 +68,20 @@ creates the terminal as a prefix argument.  MODE is either 'term or
     ('shell
      (setq name-prefix "shell")
      (call-interactively 'shell)))
+  (when (string-equal name "%cwd")
+    (setq name (helm-mt/get-buffer-process-cwd (current-buffer))))
   (rename-buffer (generate-new-buffer-name (format "*%s<%s>*" name-prefix name))))
+
+(defun helm-mt/get-buffer-process-cwd (buf)
+  "The current working directory of the process of buffer BUF, or nil (depends on lsof)."
+  (if (get-buffer-process buf)
+      (let*
+          ((pid (process-id (get-buffer-process buf)))
+           (command (format "lsof -Fn -a -dcwd -p%d" pid))
+           (stdout (shell-command-to-string command)))
+        (string-match "^n\\(.*\\)" stdout)
+        (match-string 1 stdout))
+    (nil)))
 
 (defun helm-mt/delete-marked-terminals (ignored)
   "Delete marked terminals.
@@ -110,28 +124,25 @@ Argument IGNORED is not used."
 (defun helm-mt/source-terminal-not-found (prefix)
   "Helm source to launch a new terminal.
 PREFIX is passed on to `helm-mt/launch-terminal'.  Defaults to a
-terminal with a unique name derived from the `default-directory'."
-  (let ((default-display "Named after current directory (default)")
-        (default-real (generate-new-buffer-name (expand-file-name default-directory))))
-    (helm-build-sync-source
-        "Launch a new terminal"
-      :candidates '("dummy")
-      :filtered-candidate-transformer (lambda (candidates _source)
-                                        (if (string-equal helm-pattern "")
-                                            (list `(,default-display . ,default-real))
-                                          (list helm-pattern)))
-      :matchplugin nil
-      :match 'identity
-      :volatile t
-      :action (apply 'helm-make-actions
-                     (apply 'append
-                            (mapcar (lambda (mode)
-                                      (list (format "Launch new %s" mode)
-                                            `(lambda (candidate)
-                                               (if (string-equal candidate ,default-display)
-                                                   (setq candidate ,default-real))
-                                               (helm-mt/launch-terminal candidate ,prefix (quote ,mode)))))
-                                    (list 'term 'shell)))))))
+terminal with a unique name derived from the working directory of the
+launched process."
+  (helm-build-sync-source
+      "Launch a new terminal"
+    :candidates '("dummy")
+    :filtered-candidate-transformer (lambda (candidates _source)
+                                      (if (string-equal helm-pattern "")
+                                          (list '("Named after terminal working directory (default)" . "%cwd"))
+                                        (list helm-pattern)))
+    :matchplugin nil
+    :match 'identity
+    :volatile t
+    :action (apply 'helm-make-actions
+                   (apply 'append
+                          (mapcar (lambda (mode)
+                                    (list (format "Launch new %s" mode)
+                                          `(lambda (candidate)
+                                             (helm-mt/launch-terminal candidate ,prefix (quote ,mode)))))
+                                  (list 'term 'shell))))))
 
 (defun helm-mt/reroute-function (orig-fun &rest args)
   "Advise a function to run `helm-mt' instead when called interactively.
