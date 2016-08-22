@@ -133,7 +133,6 @@ launched process."
                                       (if (string-equal helm-pattern "")
                                           (list '("Named after terminal working directory (default)" . "%cwd"))
                                         (list helm-pattern)))
-    :matchplugin nil
     :match 'identity
     :volatile t
     :action (apply 'helm-make-actions
