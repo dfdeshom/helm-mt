@@ -4,7 +4,7 @@
 
 ;; Author: Didier Deshommes <dfdeshom@gmail.com>
 ;; URL: https://github.com/dfdeshom/helm-mt
-;; Version: 0.6
+;; Version: 0.9
 ;; Package-Requires: ((emacs "24") (helm "0.0") (multi-term "0.0") (cl-lib "0.5"))
 ;; Keywords: helm multi-term
 
@@ -23,11 +23,11 @@
 
 ;;; Commentary:
 
-;; Create and delete multi-term terminals easily with Helm.  A call to
-;; `helm-mt` will show a list of running terminal sessions by
-;; examining buffers with major mode `term-mode` or `shell-mode`.
-;; From there, you should be able to create, delete or switch over to
-;; existing terminal buffers.
+;; Helm bindings for managing `multi-term' terminals as well as
+;; shells.  A call to `helm-mt` will show a list of terminal sessions
+;; managed by `multi-term` as well as buffers with major mode
+;; `shell-mode`.  From there, you are able to create, delete or switch
+;; over to existing terminal buffers.
 
 ;;; Code:
 
@@ -35,85 +35,78 @@
 (require 'helm)
 (require 'helm-lib)
 (require 'helm-source)
-(require 'helm-utils)
 (require 'multi-term)
 
-(defgroup helm-mt nil
-  "Open helm-mt."
-  :prefix "helm-mt/" :group 'helm)
-
-(defvar helm-mt/all-terminal-modes '(term-mode shell-mode)
-  "If a buffer has a major mode in this list, helm-mt will list it as an option.
-The order of the modes controls which is the default action in the helm-mt UI.")
+(defvar helm-mt/keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map helm-map)
+    (define-key map (kbd "M-D") 'helm-mt/helm-buffer-run-delete-terminals)
+    (delq nil map))
+  "Keymap for `helm-mt'.")
 
 (defun helm-mt/terminal-buffers ()
-  "Filter for buffers that are terminals only."
+  "Filter for buffers that are terminals only.
+Includes buffers managed by `multi-term' (excludes dedicated term
+buffers) and buffers in `shell-mode'."
   (cl-loop for buf in (buffer-list)
-           if (member (buffer-local-value 'major-mode buf) helm-mt/all-terminal-modes)
+           if (or (member buf multi-term-buffer-list)
+                  (eq (buffer-local-value 'major-mode buf) 'shell-mode))
            collect (buffer-name buf)))
 
-(defun helm-mt/unique-buffer-name (name mode)
-  "Unique buffer from NAME and MODE."
+(defun helm-mt/launch-terminal (name prefix mode)
+  "Launch a terminal in a new buffer.
+NAME is the desired name of the buffer.  Pass \"%cwd\" to use the
+working directory of the launched terminal process.  Additionally, the
+buffer name will be prefixed with the given mode and made unique.
+PREFIX is passed on to the function that creates the terminal as a
+prefix argument.  MODE is either 'term or 'shell."
+  (setq current-prefix-arg prefix)
   (cl-case mode
-    ('term-mode
-     (generate-new-buffer-name (format "*terminal<%s>*" name)))
-    ('shell-mode
-     (generate-new-buffer-name (format "*shell<%s>*" name)))))
+    ('term
+     (setq name-prefix "terminal")
+     (call-interactively 'multi-term))
+    ('shell
+     (setq name-prefix "shell")
+     (call-interactively 'shell)))
+  (when (string-equal name "%cwd")
+    (setq name (helm-mt/get-buffer-process-cwd (current-buffer))))
+  (rename-buffer (generate-new-buffer-name (format "*%s<%s>*" name-prefix name))))
 
-(defun helm-mt/new-term (name)
-  "Create terminal NAME."
-  (multi-term)
-  (rename-buffer name))
+(defun helm-mt/get-buffer-process-cwd (buf)
+  "The current working directory of the process of buffer BUF, or nil (depends on lsof)."
+  (if (get-buffer-process buf)
+      (let*
+          ((pid (process-id (get-buffer-process buf)))
+           (command (format "lsof -Fn -a -dcwd -p%d" pid))
+           (stdout (shell-command-to-string command)))
+        (string-match "^n\\(.*\\)" stdout)
+        (match-string 1 stdout))
+    (nil)))
 
-(defun helm-mt/launch-term (name mode)
-  "Create new terminal in a buffer called NAME using optional MODE."
-  (message (format "Launching term \"%s\" with mode \"%s\" " name mode))
-  (cl-case mode
-    ('term-mode
-     (helm-mt/new-term (helm-mt/unique-buffer-name name 'term-mode)))
-    ('shell-mode
-     (shell (helm-mt/unique-buffer-name name 'shell-mode)))))
-
-(defun helm-mt/delete-marked-terms (_ignored)
+(defun helm-mt/delete-marked-terminals (ignored)
   "Delete marked terminals.
-The _IGNORED argument is not used."
+Argument IGNORED is not used."
   (let* ((bufs (helm-marked-candidates))
-         (killed-bufs (cl-count-if 'helm-mt/delete-term bufs)))
+         (killed-bufs (cl-count-if 'helm-mt/delete-terminal bufs)))
     (with-helm-buffer
       (setq helm-marked-candidates nil
             helm-visible-mark-overlays nil))
     (message "Deleted %s terminal(s)" killed-bufs)))
 
-(defun helm-mt/delete-term (name)
+(defun helm-mt/delete-terminal (name)
   "Delete terminal NAME."
   (if (get-buffer-process name)
       (delete-process name))
   (kill-buffer name))
 
-(defun helm-mt/helper-auto-terminal ()
-  "Launch a term with the current directory as the name."
-  (let* ((name (replace-regexp-in-string  (regexp-quote "Directory ") "" (pwd)))
-         (terminal_name (helm-mt/unique-buffer-name name 'term-mode)))
-    (helm-mt/new-term terminal_name)))
-
-(defun helm-mt/auto-terminal ()
-  "Launch a term with the current directory as the name."
+(defun helm-mt/helm-buffer-run-delete-terminals ()
+  "Run 'delete marked terminals' action from `helm-mt' source list."
   (interactive)
-  (helm-mt/helper-auto-terminal)
-  ;;(helm-keyboard-quit)
-  ;;(helm-exit-minibuffer)
-  ;;(exit-minibuffer)
-  ;;(helm-quit-and-execute-action 'helm-mt/helper-launch-term-with-named-dir)
-  )
+  (with-helm-alive-p
+    (helm-exit-and-execute-action 'helm-mt/delete-marked-terminals)))
+(put 'helm-mt/helm-buffer-run-delete-terminals 'helm-only t)
 
-(defvar helm-mt/keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c n") 'helm-mt/auto-terminal)
-    (delq nil map))
-  "Keymap for helm-mt.")
-
-(defun helm-mt/term-source-terminals ()
+(defun helm-mt/source-terminals ()
   "Helm source with candidates for all terminal buffers."
   (helm-build-sync-source
       "Terminals"
@@ -121,52 +114,60 @@ The _IGNORED argument is not used."
                             (helm-mt/terminal-buffers)
                             (list "")))
     :action (helm-make-actions
-             "Switch to terminal buffer"
+             "Switch to terminal"
              (lambda (candidate)
                (switch-to-buffer candidate))
-             "Exit marked terminal(s)"
-             (lambda (_ignored)
-               (helm-mt/delete-marked-terms _ignored)))))
+             "Delete marked terminal(s) `M-D'"
+             (lambda (ignored)
+               (helm-mt/delete-marked-terminals ignored)))))
 
-(defun helm-mt/term-source-terminal-not-found ()
-  "Dummy helm source to launch a new terminal."
-  (helm-build-dummy-source
+(defun helm-mt/source-terminal-not-found (prefix)
+  "Helm source to launch a new terminal.
+PREFIX is passed on to `helm-mt/launch-terminal'.  Defaults to a
+terminal with a unique name derived from the working directory of the
+launched process."
+  (helm-build-sync-source
       "Launch a new terminal"
+    :candidates '("dummy")
+    :filtered-candidate-transformer (lambda (candidates _source)
+                                      (if (string-equal helm-pattern "")
+                                          (list '("Named after terminal working directory (default)" . "%cwd"))
+                                        (list helm-pattern)))
+    :match 'identity
+    :volatile t
     :action (apply 'helm-make-actions
                    (apply 'append
                           (mapcar (lambda (mode)
                                     (list (format "Launch new %s" mode)
                                           `(lambda (candidate)
-                                             (helm-mt/launch-term candidate (quote ,mode)))))
-                                  helm-mt/all-terminal-modes)))))
+                                             (helm-mt/launch-terminal candidate ,prefix (quote ,mode)))))
+                                  (list 'term 'shell))))))
 
-(defun helm-mt/shell-advice (orig-fun &rest args)
-  "Advice that has helm-mt run when invoking `M-x shell` or `M-x term`.
+(defun helm-mt/reroute-function (orig-fun &rest args)
+  "Advise a function to run `helm-mt' instead when called interactively.
 Argument ORIG-FUN is the original function, ARGS are its arguments."
-  (message "wrapping shell with helm-mt")
   (if (called-interactively-p 'interactive)
-      (call-interactively 'helm-mt)
+      (progn
+        (message "Rerouting to `helm-mt'")
+        (helm-mt))
     (apply orig-fun args)))
 
 ;;;###autoload
-(defun helm-mt/wrap-shells (onoff)
-  "Put advice around shell functions when called interactively.
-This routes to helm-mt UI instead of launching a new shell/terminal.
-If ONOFF is t, activate the advice and if nil, remove it."
-  (interactive)
-  (dolist (mode helm-mt/all-terminal-modes)
-    (let ((fun (intern (replace-regexp-in-string (regexp-quote "-mode") "" (symbol-name mode)))))
-      (if onoff
-          (eval
-           `(add-function :around (symbol-function (quote ,fun)) #'helm-mt/shell-advice))
-        (eval `(advice-remove (quote ,fun) #'helm-mt/shell-advice))))))
+(defun helm-mt/reroute-terminal-functions (arg)
+  "Advise terminal functions to run `helm-mt' instead when called interactively.
+If ARG is t, then activate the advice; otherwise, remove it."
+  (dolist (fun (list 'term 'shell))
+    (if arg
+        (advice-add fun :around #'helm-mt/reroute-function)
+      (advice-remove fun #'helm-mt/reroute-function))))
 
 ;;;###autoload
-(defun helm-mt ()
-  "Custom helm buffer for terminals only."
-  (interactive)
-  (helm :sources `(,(helm-mt/term-source-terminals)
-                   ,(helm-mt/term-source-terminal-not-found))
+(defun helm-mt (&optional prefix)
+  "Custom helm buffer for terminals only.
+PREFIX is passed on to `helm-mt/term-source-terminal-not-found'."
+  (interactive "P")
+  (helm :sources `(,(helm-mt/source-terminals)
+                   ,(helm-mt/source-terminal-not-found prefix))
         :keymap helm-mt/keymap
         :buffer "*helm mt*"))
 
