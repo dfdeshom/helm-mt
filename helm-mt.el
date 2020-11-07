@@ -36,6 +36,7 @@
 (require 'helm-lib)
 (require 'helm-source)
 (require 'multi-term)
+(require 'multi-vterm)
 
 (defvar helm-mt/keymap
   (let ((map (make-sparse-keymap)))
@@ -49,7 +50,8 @@
 Includes buffers managed by `multi-term' (excludes dedicated term
 buffers) and buffers in `shell-mode'."
   (cl-loop for buf in (buffer-list)
-           if (or (member buf multi-term-buffer-list)
+           if (or (member buf multi-vterm-buffer-list)
+                  (member buf multi-term-buffer-list)
                   (eq (buffer-local-value 'major-mode buf) 'shell-mode))
            collect (buffer-name buf)))
 
@@ -62,6 +64,9 @@ PREFIX is passed on to the function that creates the terminal as a
 prefix argument.  MODE is either 'term or 'shell."
   (setq current-prefix-arg prefix)
   (cl-case mode
+    ('vterm
+     (setq name-prefix "vterminal")
+     (call-interactively 'multi-vterm))
     ('term
      (setq name-prefix "terminal")
      (call-interactively 'multi-term))
@@ -141,7 +146,7 @@ launched process."
                                     (list (format "Launch new %s" mode)
                                           `(lambda (candidate)
                                              (helm-mt/launch-terminal candidate ,prefix (quote ,mode)))))
-                                  (list 'term 'shell))))))
+                                  (list 'vterm 'term 'shell))))))
 
 (defun helm-mt/reroute-function (orig-fun &rest args)
   "Advise a function to run `helm-mt' instead when called interactively.
@@ -156,7 +161,7 @@ Argument ORIG-FUN is the original function, ARGS are its arguments."
 (defun helm-mt/reroute-terminal-functions (arg)
   "Advise terminal functions to run `helm-mt' instead when called interactively.
 If ARG is t, then activate the advice; otherwise, remove it."
-  (dolist (fun (list 'term 'shell))
+  (dolist (fun (list 'vterm 'term 'shell))
     (if arg
         (advice-add fun :around #'helm-mt/reroute-function)
       (advice-remove fun #'helm-mt/reroute-function))))
